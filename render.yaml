@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: smart-parking-backend
+    env: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        fromDatabase:
+          name: smart-parking-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://smart-parking-frontend.onrender.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: MQTT_BROKER_URL
+        value: mqtt://broker.hivemq.com:1883
+
+  - type: web
+    name: smart-parking-frontend
+    env: static
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: VITE_API_URL
+        value: https://smart-parking-backend.onrender.com
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+
+databases:
+  - name: smart-parking-db
+    databaseName: smart_parking
+    user: parking_user
+    plan: free
